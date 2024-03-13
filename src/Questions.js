@@ -11,14 +11,6 @@ const Questions = ({ question, dispatch, answer }) => {
         answer={answer}
         correctOption={question.correctOption}
       />
-      {answer !== null && (
-        <button
-          className="btn btn-ui"
-          onClick={() => dispatch({ type: "nextQuestion" })}
-        >
-          Next
-        </button>
-      )}
     </div>
   );
 };
