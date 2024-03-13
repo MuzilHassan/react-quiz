@@ -10,6 +10,8 @@ const initialState = {
   questions: [],
   status: "Loading",
   index: 0,
+  answer: null,
+  points: 0,
 };
 function reducer(state, action) {
   switch (action.type) {
@@ -20,13 +22,32 @@ function reducer(state, action) {
       return { ...state, status: "Start" };
     case "Error":
       return { ...state, status: "Error" };
+    case "newAnswer": {
+      const question = state.questions[state.index];
+      return {
+        ...state,
+        answer: action.payload,
+        points:
+          action.payload == question.correctOption
+            ? state.points + question.points
+            : state.points,
+      };
+    }
+
+    case "nextQuestion": {
+      return {
+        ...state,
+        index: state.index + 1,
+        answer: null,
+      };
+    }
   }
 }
 function App() {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const { questions, status } = state;
-
+  const { questions, status, index, answer } = state;
+  console.log(index);
   useEffect(() => {
     fetch("http://localhost:8000/questions")
       .then((res) => res.json())
@@ -42,7 +63,13 @@ function App() {
         {status === "Ready" && (
           <StartScreen length={questions.length} dispatch={dispatch} />
         )}
-        {status === "Start" && <Questions />}
+        {status === "Start" && (
+          <Questions
+            question={questions[index]}
+            dispatch={dispatch}
+            answer={answer}
+          />
+        )}
       </Main>
     </div>
   );
