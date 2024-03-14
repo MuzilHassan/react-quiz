@@ -8,6 +8,10 @@ import StartScreen from "./StartScreen";
 import Questions from "./Questions";
 import ProgressBar from "./ProgressBar";
 import Finish from "./Finish";
+import Footer from "./Footer";
+import Timer from "./Timer";
+
+const secondsPerQuestion = 20;
 const initialState = {
   questions: [],
   status: "Loading",
@@ -15,6 +19,7 @@ const initialState = {
   answer: null,
   points: 0,
   highscore: 0,
+  secondsRemaning: null,
 };
 function reducer(state, action) {
   switch (action.type) {
@@ -22,7 +27,11 @@ function reducer(state, action) {
       return { ...state, questions: action.payload, status: "Ready" };
     }
     case "Start":
-      return { ...state, status: "Start" };
+      return {
+        ...state,
+        status: "Start",
+        secondsRemaning: state.questions.length * secondsPerQuestion,
+      };
     case "Error":
       return { ...state, status: "Error" };
     case "newAnswer": {
@@ -61,12 +70,27 @@ function reducer(state, action) {
         status: "Ready",
       };
     }
+    case "reduceTimer": {
+      return {
+        ...state,
+        secondsRemaning: state.secondsRemaning - 1,
+        status: state.secondsRemaning > 0 ? state.status : "Finished",
+      };
+    }
   }
 }
 function App() {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const { questions, status, index, answer, points, highscore } = state;
+  const {
+    questions,
+    status,
+    index,
+    answer,
+    points,
+    highscore,
+    secondsRemaning,
+  } = state;
   const maxPoints = questions.reduce((acc, cur) => acc + cur.points, 0);
   useEffect(() => {
     fetch("http://localhost:8000/questions")
@@ -99,22 +123,25 @@ function App() {
               dispatch={dispatch}
               answer={answer}
             />
-            {answer !== null &&
-              (index < questions.length - 1 ? (
-                <button
-                  className="btn btn-ui"
-                  onClick={() => dispatch({ type: "nextQuestion" })}
-                >
-                  Next
-                </button>
-              ) : (
-                <button
-                  className="btn btn-ui"
-                  onClick={() => dispatch({ type: "finish" })}
-                >
-                  Finish
-                </button>
-              ))}
+            <Footer>
+              {answer !== null &&
+                (index < questions.length - 1 ? (
+                  <button
+                    className="btn btn-ui"
+                    onClick={() => dispatch({ type: "nextQuestion" })}
+                  >
+                    Next
+                  </button>
+                ) : (
+                  <button
+                    className="btn btn-ui"
+                    onClick={() => dispatch({ type: "finish" })}
+                  >
+                    Finish
+                  </button>
+                ))}
+              <Timer dispatch={dispatch} time={secondsRemaning} />
+            </Footer>
           </>
         )}
         {status === "Finished" && (
