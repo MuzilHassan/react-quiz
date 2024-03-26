@@ -1,6 +1,8 @@
 import React from "react";
+import { useQuiz } from "./QuizContext";
 
-const Finish = ({ points, totalPoints, highscore, dispatch }) => {
+const Finish = ({ totalPoints }) => {
+  const { points, highscore, dispatch } = useQuiz();
   const percentage = Math.ceil((points / totalPoints) * 100);
   return (
     <>
